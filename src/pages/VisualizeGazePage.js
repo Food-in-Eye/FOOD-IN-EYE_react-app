@@ -1,6 +1,7 @@
 import MenuBar from "../components/MenuBar";
 import VisualizeGaze from "../css/VisualizeGaze.module.css";
-import GenerateImgUrl from "../components/GenerateImgUrl.module";
+// import GenerateImgUrl from "../components/GenerateImgUrl.module";
+import ExImgUrl from "../components/ExImgUrl.module";
 import heatmap from "heatmap.js";
 
 import { useState, useEffect } from "react";
@@ -9,10 +10,11 @@ import { getGaze, getFilteredGaze } from "../components/API.module";
 function VisualizeGazePage() {
   const storeNum = parseInt(localStorage.getItem("storeNum"), 10);
   const pages = ["store_list", "store_menu", "menu_detail"];
-  const screenWidth = 682;
+  const imgWidth = 1080;
 
   const [pageList, setPageList] = useState([]);
   const [fileList, setFileList] = useState([]);
+  const [divWidths, setDivWidths] = useState([]);
   const [divHeights, setDivHeights] = useState([]);
   const [gazeData, setGazeData] = useState([]);
   const [pageGazeData, setPageGazeData] = useState([]);
@@ -55,7 +57,7 @@ function VisualizeGazePage() {
         console.log("fix_data", res);
       });
     } catch (error) {
-      console.error("Error getting data from anlyz:", error);
+      console.error("Error getting data from analysis:", error);
     }
 
     try {
@@ -70,17 +72,17 @@ function VisualizeGazePage() {
       if (!gazeData || gazeData.length === 0) return;
 
       const filteredGazeData = gazeData.filter(
-        (item) =>
-          pages.includes(item.page) &&
-          (item.s_num === 0 || item.s_num === storeNum)
+        (item) => pages.includes(item.page)
+        // &&
+        // (item.s_num === 0 || item.s_num === storeNum)
       );
 
       setPageGazeData(filteredGazeData);
 
       const filteredFixData = fixData.filter(
-        (item) =>
-          pages.includes(item.page) &&
-          (item.s_num === 0 || item.s_num === storeNum)
+        (item) => pages.includes(item.page)
+        // &&
+        // (item.s_num === 0 || item.s_num === storeNum)
       );
       setPageFixData(filteredFixData);
 
@@ -98,34 +100,51 @@ function VisualizeGazePage() {
         const imgUrls = await Promise.all(
           pageList.map(async (page) => {
             console.log("s_num, f_num", page.s_num, page.f_num);
-            return await GenerateImgUrl(page.s_num, page.f_num);
+            // return await GenerateImgUrl(page.s_num, page.f_num);
+            return await ExImgUrl(page.s_num, page.f_num);
           })
         );
         setImgUrls(imgUrls);
       };
 
-      const getScreenHeight = (url) => {
-        return new Promise((resolve) => {
-          const img = new Image();
-          img.onload = () => {
-            resolve(img.height);
-          };
-          img.src = url;
-        });
+      const getImgDimensions = async () => {
+        const dimensions = await Promise.all(
+          imgUrls.map(async (url) => {
+            const img = new Image();
+            img.src = url;
+
+            await new Promise((resolve) => {
+              img.onload = resolve;
+            });
+
+            const imgRatio = img.height / img.width;
+
+            return {
+              url: url,
+              width: imgWidth,
+              height: imgWidth * imgRatio,
+            };
+          })
+        );
+
+        return dimensions;
       };
 
-      const imgHeights = await Promise.all(
-        imgUrls.map(async (url) => await getScreenHeight(url))
-      );
-
       getImgUrls();
+
+      const imgDimensions = await getImgDimensions();
+      const imgWidths = imgDimensions.map((dim) => dim.width);
+      const imgHeights = imgDimensions.map((dim) => dim.height);
+
+      setDivWidths(imgWidths);
       setDivHeights(imgHeights);
     };
 
     loadData();
-  }, [gazeData, fixData, storeNum]);
+  }, [gazeData, fixData]);
 
-  useEffect(() => {}, [imgUrls]);
+  console.log("divWidths", divWidths);
+  console.log("divHeights", divHeights);
 
   /** Calculate filteredGazeData, filteredGPData */
   useEffect(() => {
@@ -134,7 +153,8 @@ function VisualizeGazePage() {
         ? data.gaze.filter(
             (point) =>
               point.x >= 0 &&
-              point.x <= screenWidth &&
+              point.x <= divWidths[index] &&
+              // point.x <= screenWidth &&
               point.y >= 0 &&
               point.y <= divHeights[index]
           )
@@ -147,7 +167,8 @@ function VisualizeGazePage() {
         .filter(
           (point) =>
             point.x >= 0 &&
-            point.x <= screenWidth &&
+            point.x <= divWidths[index] &&
+            // point.x <= screenWidth &&
             point.y >= 0 &&
             point.y <= divHeights[index]
         )
@@ -155,7 +176,7 @@ function VisualizeGazePage() {
 
     setFilteredGazeData(filteredGazeData);
     setFilteredGPData(filteredGPData);
-  }, [pageGazeData, pageFixData, divHeights]);
+  }, [pageGazeData, pageFixData, divWidths, divHeights]);
 
   return (
     <div>
@@ -189,13 +210,12 @@ function VisualizeGazePage() {
         <div className={VisualizeGaze.screensForCompare}>
           <section className={VisualizeGaze.screensBeforeFilter}>
             {divHeights.map((divHeight, index) => {
-              console.log(`${pageList[index].page}: ${divHeight}`);
-              console.log("filteredGazeData", filteredGazeData);
               return (
                 <div
                   key={index}
                   className={`${VisualizeGaze.gazePlot} ${VisualizeGaze.gazePlotRow}`}
                   style={{
+                    width: divWidths[index],
                     height: divHeight,
                     backgroundImage: `url(${imgUrls[index]})`,
                     backgroundSize: "cover",
@@ -209,7 +229,7 @@ function VisualizeGazePage() {
                       key={`${idx}`}
                       className={VisualizeGaze.gazePoint}
                       style={{
-                        left: `${(point.x / screenWidth) * 100}%`,
+                        left: `${(point.x / divWidths[index]) * 100}%`,
                         top: `${(point.y / divHeight) * 100}%`,
                       }}
                       title={pageList[index].page}
@@ -221,13 +241,12 @@ function VisualizeGazePage() {
           </section>
           <section className={VisualizeGaze.screensAfterFilter}>
             {divHeights.map((divHeight, index) => {
-              console.log("pageFixData", pageFixData);
-              console.log("filteredGPData", filteredGPData);
               return (
                 <div
                   key={`page_${index}`}
                   className={`${VisualizeGaze.gazePlot} ${VisualizeGaze.gazePlotRow}`}
                   style={{
+                    width: divWidths[index],
                     height: divHeight,
                     backgroundImage: `url(${imgUrls[index]})`,
                     backgroundSize: "cover",
@@ -241,13 +260,13 @@ function VisualizeGazePage() {
                       key={`gaze_point_${idx}`}
                       className={VisualizeGaze.gazePoint}
                       style={{
-                        left: `${(point.x / screenWidth) * 100}%`,
+                        left: `${(point.x / divWidths[index]) * 100}%`,
                         top: `${(point.y / divHeight) * 100}%`,
                       }}
                       title={pageList[index].page}
                     ></div>
                   ))}
-                  <svg width={screenWidth} height={divHeight}>
+                  <svg width={divWidths[index]} height={divHeight}>
                     {pageFixData[index].fixations.map(
                       (fixation, fixationIdx) => (
                         <circle
@@ -267,14 +286,12 @@ function VisualizeGazePage() {
           </section>
           <section className={VisualizeGaze.screensOverlapGaze}>
             {divHeights.map((divHeight, index) => {
-              console.log(`${pageList[index].page}: ${divHeight}`);
-              console.log("filteredGazeData", filteredGazeData);
-
               return (
                 <div
                   key={index}
                   className={`${VisualizeGaze.gazePlot} ${VisualizeGaze.gazePlotRow}`}
                   style={{
+                    width: divWidths[0],
                     height: divHeight,
                     backgroundImage: `url(${imgUrls[index]})`,
                     backgroundSize: "cover",
@@ -288,7 +305,7 @@ function VisualizeGazePage() {
                       key={`${idx}`}
                       className={VisualizeGaze.overGazePoint}
                       style={{
-                        left: `${(point.x / screenWidth) * 100}%`,
+                        left: `${(point.x / divWidths[index]) * 100}%`,
                         top: `${(point.y / divHeight) * 100}%`,
                       }}
                       title={pageList[index].page}
@@ -299,7 +316,7 @@ function VisualizeGazePage() {
                       key={`gaze_point_${idx}`}
                       className={VisualizeGaze.overGP}
                       style={{
-                        left: `${(point.x / screenWidth) * 100}%`,
+                        left: `${(point.x / divWidths[index]) * 100}%`,
                         top: `${(point.y / divHeight) * 100}%`,
                       }}
                       title={pageList[index].page}
