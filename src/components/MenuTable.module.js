@@ -21,6 +21,7 @@ function OrderHistoryTable({ data }) {
       {
         Header: "메뉴 총 가격",
         accessor: "menuPrices",
+        Cell: ({ value }) => <div style={{ textAlign: "right" }}>{value}</div>,
       },
     ],
     []
@@ -70,7 +71,10 @@ function OrderHistoryTable({ data }) {
       </tbody>
       <tfoot>
         <tr>
-          <td colSpan="3" style={{ textAlign: "left" }}>
+          <td
+            colSpan="3"
+            style={{ textAlign: "left", fontFamily: "Hahmlet-Medium" }}
+          >
             총합계:
           </td>
           <td style={{ textAlign: "right" }}>{total}</td>

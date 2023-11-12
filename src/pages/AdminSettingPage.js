@@ -4,12 +4,7 @@ import Admin from "../css/AdminSetting.module.css";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import useTokenRefresh from "../components/useTokenRefresh";
-import {
-  getStore,
-  putStore,
-  putUser,
-  postStore,
-} from "../components/API.module";
+import { getStore, putUser } from "../components/API.module";
 
 function AdminSettingPage() {
   useTokenRefresh();
@@ -19,17 +14,11 @@ function AdminSettingPage() {
   const id = localStorage.getItem("id");
   const uID = localStorage.getItem("u_id");
   const storeId = localStorage.getItem("s_id");
-  const [store, setStore] = useState([]);
 
-  const [nameCheck, setNameCheck] = useState("");
   const [name, setName] = useState("");
-
-  const [newName, setNewName] = useState("");
   const [passwd, setPasswd] = useState("");
   const [newPasswd, setNewPasswd] = useState("");
 
-  const [showNameDuplicateMsg, setShowNameDuplicateMsg] = useState(false);
-  const [showNameUniqueMsg, setShowNameUniqueMsg] = useState(false);
   const [showPasswdMatchMsg, setShowPasswdMatchMsg] = useState(false);
   const [showValidPasswdMsg, setShowValidPasswdMsg] = useState(false);
 
@@ -37,7 +26,6 @@ function AdminSettingPage() {
     const getStoreName = async () => {
       try {
         const res = await getStore(storeId);
-        setStore(res.data);
         setName(res.data.name);
       } catch (error) {
         console.error("가게 이름 가져오는 중 에러 발생:", error.response);
@@ -47,26 +35,26 @@ function AdminSettingPage() {
     getStoreName();
   }, [id]);
 
-  const handleNameDuplicate = async (e) => {
-    e.preventDefault();
+  // const handleNameDuplicate = async (e) => {
+  //   e.preventDefault();
 
-    try {
-      const res = await postStore(`/namecheck`, {
-        name: nameCheck,
-      });
+  //   try {
+  //     const res = await postStore(`/namecheck`, {
+  //       name: nameCheck,
+  //     });
 
-      if (res.data.state === "available") {
-        setShowNameDuplicateMsg(false);
-        setShowNameUniqueMsg(true);
-        setNewName(nameCheck);
-      } else if (res.data.state === "unavailable") {
-        setShowNameDuplicateMsg(true);
-        setShowNameUniqueMsg(false);
-      }
-    } catch (error) {
-      console.error("가게 이름 중복 확인 중 오류 발생:", error);
-    }
-  };
+  //     if (res.data.state === "available") {
+  //       setShowNameDuplicateMsg(false);
+  //       setShowNameUniqueMsg(true);
+  //       setNewName(nameCheck);
+  //     } else if (res.data.state === "unavailable") {
+  //       setShowNameDuplicateMsg(true);
+  //       setShowNameUniqueMsg(false);
+  //     }
+  //   } catch (error) {
+  //     console.error("가게 이름 중복 확인 중 오류 발생:", error);
+  //   }
+  // };
 
   const isPasswordValid = (password) => {
     const passwordPattern =
@@ -102,18 +90,18 @@ function AdminSettingPage() {
         });
 
         if (res.status === 200) {
-          await putStore(storeId, {
-            ...store,
-            name: newName,
-          }).catch((error) => {
-            if (error.response.state === 409) {
-              console.log(error.response.data.detail);
-            } else if (error.response.state === 503) {
-              console.log(error.response.data.detail);
-            } else {
-              console.error("가게 이름 업데이트 중 오류 발생:", error);
-            }
-          });
+          // await putStore(storeId, {
+          //   ...store,
+          //   name: name,
+          // }).catch((error) => {
+          //   if (error.response.state === 409) {
+          //     console.log(error.response.data.detail);
+          //   } else if (error.response.state === 503) {
+          //     console.log(error.response.data.detail);
+          //   } else {
+          //     console.error("가게 이름 업데이트 중 오류 발생:", error);
+          //   }
+          // });
 
           navigate(`/main`);
         }
@@ -135,15 +123,15 @@ function AdminSettingPage() {
         <div className={Admin.body}>
           <section className={Admin.desc}>
             <h1>Account Settings</h1>
-            <span>가게 이름과 비밀번호를 수정할 수 있습니다.</span>
+            <span>비밀번호를 수정할 수 있습니다.</span>
           </section>
           <section className={Admin.EditForm}>
             <form>
               <section className={Admin.LastStoreNameSection}>
-                <span>이전 가게 이름</span>
+                <span>가게 이름</span>
                 <p>{name}</p>
               </section>
-              <section className={Admin.storeNameSection}>
+              {/* <section className={Admin.storeNameSection}>
                 <label htmlFor="store-name">
                   <span>가게 이름</span>
                   <input
@@ -183,7 +171,7 @@ function AdminSettingPage() {
                     <p className={Admin.pSection}>사용 가능한 이름 입니다.</p>
                   )
                 )}
-              </div>
+              </div> */}
               <section className={Admin.IDSection}>
                 <span>아이디</span>
                 <p>{id}</p>

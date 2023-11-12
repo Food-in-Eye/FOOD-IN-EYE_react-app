@@ -1,5 +1,5 @@
 import axios from "axios";
-import { handleAccessToken } from "./JWT.module";
+import { handleAccessToken, resetLogin } from "./JWT.module";
 
 const USER_URL = "/api/v2/users";
 const STORE_URL = "/api/v2/stores";
@@ -36,7 +36,7 @@ async function retryOriginalRequest(error) {
     )}`;
     return apiInstance(originalRequest);
   } catch (retryError) {
-    return Promise.reject(retryError);
+    resetLogin();
   }
 }
 
@@ -62,6 +62,10 @@ apiInstance.interceptors.response.use(
       (error.response.status === 422)
     ) {
       console.log(error.response.data.detail);
+      // if (error.response.data.detail === "R_Token mismatch.") {
+      //   resetLogin();
+      // }
+      resetLogin();
     }
     return Promise.reject(error);
   }
@@ -89,6 +93,11 @@ export const getOrders = (query) => {
 
 export const getOrderHistory = (query) => {
   const requestUrl = `${ORDER_URL}/store/${query}`;
+  return apiInstance.get(requestUrl);
+};
+
+export const getDailyReport = (query) => {
+  const requestUrl = `${ORDER_URL}/report?${query}`;
   return apiInstance.get(requestUrl);
 };
 

@@ -1,5 +1,26 @@
 import axios from "axios";
 import { stopTokenRefresh } from "./TokenRefreshService";
+import { toast } from "react-toastify";
+
+export const resetLogin = () => {
+  stopTokenRefresh();
+
+  toast.success("장시간 동안 이용하지 않아 로그아웃 되었습니다.", {
+    position: toast.POSITION.TOP_CENTER,
+    autoClose: 3000,
+  });
+
+  setTimeout(() => {
+    localStorage.removeItem("u_id");
+    localStorage.removeItem("s_id");
+    localStorage.removeItem("a_token");
+    localStorage.removeItem("r_token");
+    localStorage.removeItem("r_token_create_time");
+    localStorage.removeItem("storeNum");
+
+    window.location.href = "/login";
+  }, 2000);
+};
 
 export const handleAccessToken = async () => {
   const uID = localStorage.getItem("u_id");
@@ -28,22 +49,14 @@ export const handleRefreshToken = () => {
 export const handleError = async (error) => {
   if (error.response.status === 401) {
     console.log(error.response.data.detail);
-
-    stopTokenRefresh();
-    setTimeout(() => {
-      localStorage.removeItem("u_id");
-      localStorage.removeItem("s_id");
-      localStorage.removeItem("a_token");
-      localStorage.removeItem("r_token");
-      localStorage.removeItem("r_token_create_time");
-      localStorage.removeItem("storeNum");
-
-      window.location.href = "/login";
-    }, 10000);
+    resetLogin();
   } else if (error.response.status === 403) {
     console.log(error.response.data.detail);
   } else if (error.response.status === 422) {
     console.log(error.response.data.detail);
+    if (error.response.data.detail === "R_Token mismatch.") {
+      resetLogin();
+    }
   } else {
     console.log(error);
   }

@@ -1,9 +1,7 @@
 import Calendar from "react-calendar";
-import moment from "moment";
 import "react-calendar/dist/Calendar.css";
 
 import Main from "../css/Main.module.css";
-import Bar from "../css/UnderBar.module.css";
 import Button from "../css/Button.module.css";
 import MenuBar from "../components/MenuBar";
 import MenuTable from "../components/MenuTable.module";
@@ -22,8 +20,10 @@ import {
   getFoods,
   getFood,
   putOrderStatus,
+  getDailyReport,
 } from "../components/API.module";
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { SocketProvider } from "../components/SocketContext.module";
 import useTokenRefresh from "../components/useTokenRefresh";
 
@@ -34,8 +34,10 @@ function MainPage() {
   const sID = localStorage.getItem("s_id");
   const [socket, setSocket] = useState(null);
 
+  const navigate = useNavigate();
   const ordersQuery = `?s_id=${sID}&today=true&asc=false&asc_by=date`;
   const [value, onChange] = useState(new Date());
+  const [totalSale, setTotalSale] = useState(0);
   const [orderList, setOrderList] = useState([]);
   const [loading, setLoading] = useState(null);
   const [orderData, setOrderData] = useState([]);
@@ -43,7 +45,10 @@ function MainPage() {
 
   useEffect(() => {
     connectWS(sID);
-  }, [sID]);
+    const currentDate = changeFormatDate(value);
+    currentDate && getTotalSales(sID, currentDate);
+    console.log("currentDate", currentDate);
+  }, [sID, value]);
 
   const connectWS = useCallback(async (storeID) => {
     try {
@@ -71,31 +76,78 @@ function MainPage() {
     }
   }, []);
 
+  const changeFormatDate = (date) => {
+    if (date) {
+      const year = date.getFullYear();
+      const month = (date.getMonth() + 1).toString().padStart(2, "0");
+      const day = (date.getDate() - 1).toString().padStart(2, "0");
+
+      return `${year}-${month}-${day}`;
+    }
+  };
+
+  const getTotalSales = async (sID, current) => {
+    try {
+      const resPromise = getDailyReport(`s_id=${sID}&date=${current}`);
+      resPromise
+        .then((res) => {
+          console.log(res);
+          setTotalSale(res.data.daily_report.sale_summary.total_sales);
+        })
+        .catch(() => {
+          setTotalSale(0);
+        });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const orderLists = useCallback(async () => {
     try {
       setLoading(true);
 
       const ordersResponse = await getOrders(ordersQuery);
-      const orders = ordersResponse.data.order_list;
-      const foodIds = orders.reduce((acc, order) => {
-        if (order.f_list) {
-          const fIds = order.f_list.map((item) => item.f_id);
-          acc.push(...fIds);
-        }
-        return acc;
-      }, []);
+
+      const orders = ordersResponse?.data.order_list;
+
       const foodsResponse = await Promise.all(
-        foodIds.map((fID) => fID && getFood(fID))
+        orders.map(async (order) => {
+          if (order.f_list) {
+            const foodItems = await Promise.all(
+              order.f_list.map(async (item) => {
+                if (item.f_id) {
+                  const response = await getFood(item.f_id);
+                  return response.data;
+                }
+                return null;
+              })
+            );
+
+            return foodItems;
+          }
+          return null;
+        })
       );
 
-      const foods = await Promise.all(foodsResponse.map((res) => res.data));
+      const names = [];
 
-      const orderListWithFoods = orders
-        .filter((order, index) => foods[index])
-        .map((order, index) => ({
-          ...order,
-          foodName: foods[index].name,
-        }));
+      await Promise.all(
+        foodsResponse.map(async (res) => {
+          const foodName = await Promise.all(
+            res.map(async (item) => {
+              if (item) {
+                return item.name;
+              }
+            })
+          );
+          names.push(foodName);
+        })
+      );
+
+      const orderListWithFoods = orders.map((order, index) => ({
+        ...order,
+        foodName: names[index],
+      }));
 
       setOrderList(orderListWithFoods);
       setLoading(false);
@@ -110,10 +162,6 @@ function MainPage() {
       orderLists();
     }
   }, [socket, orderLists]);
-
-  useEffect(() => {
-    connectWS(sID);
-  }, [sID]);
 
   const handleOrderClick = (order) => {
     setOrderData([]);
@@ -197,6 +245,10 @@ function MainPage() {
     });
   };
 
+  const handleClickDate = (date) => {
+    navigate("/choose-report", { state: { date } });
+  };
+
   return (
     <SocketProvider>
       <div>
@@ -206,15 +258,26 @@ function MainPage() {
         <div className={Main.inner}>
           <div className={Main.rest}>
             <section className={Main.sales}>
-              <h3>(어제보다 오늘) +5%</h3>
-              <h2>2,000,000원</h2>
-              <p>오늘의 총 판매량</p>
+              <p>👑 어제 총 판매량</p>
+              <h2>{totalSale} 원</h2>
             </section>
             <section className={Main.cal}>
-              <Calendar onChange={onChange} value={value} />
-              <div className="text-gray-500 mt-4">
-                {moment(value).format("YYYY년 MM월 DD일")}
-              </div>
+              <span>📊 데일리 리포트</span>
+              <Calendar
+                className={Main.calendar}
+                onChange={handleClickDate}
+                value={value}
+                tileDisabled={({ date }) => {
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0); // 시간 부분을 00:00:00으로 설정
+                  return date < today ? false : true;
+                }}
+                tileClassName={({ date }) => {
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0); // 시간 부분을 00:00:00으로 설정
+                  return date.getTime() === today.getTime() ? Main.today : "";
+                }}
+              />
             </section>
             <section className={Main.shortcut}>
               <ShortCuts />
@@ -222,85 +285,104 @@ function MainPage() {
           </div>
           <div className={Main.orderDashboard}>
             <div className={Main.orders}>
-              <section className={Main.dashboardBackground} />
+              <div className={Main.orderTodaysHeader}>
+                <h2>현재 주문 내역</h2>
+              </div>
               <div className={Main.orderTodays}>
-                <div className={Main.orderTodaysHeader}>
-                  <h2>현재 주문 내역(오늘)</h2>
-                  <div className={Bar.line}>
-                    <div className={Bar.circle}></div>
-                  </div>
-                </div>
-                <ul>
-                  <hr />
-                  {orderList &&
-                    orderList.map((order, index) => (
-                      <div
-                        key={index}
-                        className={
-                          selectedOrderIndex === index
-                            ? Main.selectedOrderDiv
-                            : ""
-                        }
-                      >
-                        <div>
-                          <li
-                            onClick={() => {
-                              handleOrderClick(order);
-                              setSelectedOrderIndex(index);
-                            }}
-                          >{`${orderList.length - index}. ${
-                            order.foodName.length > 8
-                              ? order.foodName.substring(0, 8) + "..."
-                              : order.foodName
-                          }`}</li>
-                          <section className={Main.manageBtn}>
-                            <button
-                              className={Button.getOrder}
-                              onClick={() => handleOrderButtonClick(index)}
-                            >
-                              <span>
-                                {order.status === 0 && "접수 대기"}
-                                {order.status === 1 && "조리 중"}
-                                {order.status === 2 && "완료"}
-                              </span>
-                            </button>
-                          </section>
+                <hr />
+                <div className={Main.ulList}>
+                  <ul>
+                    {orderList &&
+                      orderList.map((order, index) => (
+                        <div
+                          key={index}
+                          className={
+                            selectedOrderIndex === index
+                              ? Main.selectedOrderDiv
+                              : ""
+                          }
+                        >
+                          <div className={Main.orderTag}>
+                            <li
+                              onClick={() => {
+                                handleOrderClick(order);
+                                setSelectedOrderIndex(index);
+                              }}
+                            >{`${orderList.length - index}. ${
+                              Array.isArray(order.foodName) &&
+                              order.foodName.length > 1
+                                ? `${order.foodName[0]} 외 ${
+                                    order.foodName.length - 1
+                                  } 개`
+                                : order.foodName
+                            }`}</li>
+                            <section className={Main.manageBtn}>
+                              <button
+                                className={Button.getOrder}
+                                onClick={() => {
+                                  handleOrderButtonClick(index);
+                                  handleOrderClick(order);
+                                  setSelectedOrderIndex(index);
+                                }}
+                              >
+                                <span>
+                                  {order.status === 0 && "접수 대기"}
+                                  {order.status === 1 && "조리 중"}
+                                  {order.status === 2 && "완료"}
+                                </span>
+                              </button>
+                            </section>
+                          </div>
+                          <hr />
                         </div>
-                        <hr />
-                      </div>
-                    ))}
-                </ul>
+                      ))}
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
-          <div className={Main.orderInfo}>
-            <section className={Main.infoHeader}>
-              <h2>주문 상세 페이지</h2>
-            </section>
-            <div className={Main.infoBody}>
-              <section id="orderSeq" className={Main.orderSeq}>
+          <div className={Main.infoBody}>
+            <section id="orderSeq" className={Main.orderSeq}>
+              <span>주문 진행률</span>
+              <div className={Main.orderSeqBody}>
                 <div>
-                  <img src={orderReceive} alt="주문 접수 이미지" />
+                  <img
+                    className={Main.process}
+                    src={orderReceive}
+                    alt="주문 접수 이미지"
+                  />
                   <p>주문 접수</p>
                 </div>
-                <img className={Main.arrow} src={arrow} alt="화살표" />
+                <div className={Main.arrowDiv}>
+                  <img className={Main.arrow} src={arrow} alt="화살표" />
+                </div>
                 <div>
-                  <img src={cooking} alt="조리 시작 이미지" />
+                  <img
+                    className={Main.process}
+                    src={cooking}
+                    alt="조리 시작 이미지"
+                  />
                   <p>조리 중</p>
                 </div>
-                <img className={Main.arrow} src={arrow} alt="화살표" />
+                <div className={Main.arrowDiv}>
+                  <img className={Main.arrow} src={arrow} alt="화살표" />
+                </div>
                 <div>
-                  <img src={serve} alt="수령 대기 이미지" />
+                  <img
+                    className={Main.process}
+                    src={serve}
+                    alt="수령 대기 이미지"
+                  />
                   <p>수령 대기</p>
                 </div>
-              </section>
-              <section className={Main.orderDetail}>
-                <h3>주문 내역</h3>
-                <div className={Main.orderContents}>
-                  <MenuTable data={orderData} />
-                </div>
-              </section>
-            </div>
+              </div>
+            </section>
+            <section className={Main.orderDetail}>
+              <span>상세 주문 내역</span>
+              <div className={Main.orderContents}>
+                <MenuTable data={orderData} />
+              </div>
+            </section>
           </div>
         </div>
       </div>

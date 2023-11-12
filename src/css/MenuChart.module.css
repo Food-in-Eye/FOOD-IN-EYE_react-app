@@ -1,0 +1,79 @@
+.total {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 50vw;
+  height: 35vw;
+  margin-top: 2vw;
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.menuTableDiv {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-left: 0px;
+  margin-right: auto;
+}
+
+/* td {
+  width: 20px;
+  height: 15px;
+  padding: 10px;
+  border: 1px solid #393939;
+} */
+
+.menuItem {
+  width: 15vw;
+  height: 10vw;
+  padding: 10px;
+  text-align: center;
+  vertical-align: top;
+  border: 1px solid #393939;
+}
+
+.menuItemDetails {
+  min-width: 11vw;
+}
+
+.menuItemName {
+  white-space: nowrap;
+  font-size: 25px;
+  font-weight: 700;
+  color: #2c2c2c;
+}
+
+.radioButtons {
+  display: flex;
+  border-radius: 10px;
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.radioButtons label {
+  display: flex;
+  flex-flow: row nowrap;
+  white-space: nowrap;
+  width: 6vw;
+  margin: 0 4px;
+  font-size: 20px;
+}
+
+.radioButtons label input {
+  margin: auto 0;
+}
+
+.menuItemValue {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 30px;
+  text-align: center;
+  font-size: 25px;
+  font-weight: 600;
+  color: #5a5a5a;
+  white-space: nowrap;
+}

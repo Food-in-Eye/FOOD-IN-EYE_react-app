@@ -1,0 +1,337 @@
+.inner {
+  box-sizing: border-box;
+  display: flex;
+  flex-flow: column wrap;
+  height: 700px;
+  margin: 0px;
+  padding: 0px;
+}
+
+.tabsTable {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  margin: 3vw 10vw;
+}
+
+.tabsToClick {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
+  padding: 10px 0;
+  background-color: #e0e0e0;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  font-family: "Hahmlet-Medium";
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.tabsToClick:hover {
+  background-color: #ccc;
+}
+
+.tabElement {
+  margin-bottom: 200px;
+}
+
+.tabElement div:first-child {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.tabElement div:first-child span:first-child {
+  text-align: center;
+  font-family: "Hahmlet-SemiBold";
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.menuSummarySection,
+.menuPageStatistics,
+.menuDetailPageStatistics,
+.GtoFRatioSection {
+  flex-direction: column;
+}
+
+.menuSummarySection,
+.GtoFRatioSection,
+.GtoFRatioBody,
+.menuPageStatistics,
+.menuDetailPageStatistics,
+.menuSummaryBody,
+.menuPageStatisticsBody,
+.menuDetailPageStatisticsBody {
+  display: flex;
+  align-items: center;
+  padding: 20px 0;
+  gap: 20px;
+  align-self: stretch;
+}
+
+.menuPageStatisticsSection {
+  display: flex;
+  flex-direction: column;
+  height: 500px;
+}
+
+.menuPageStatistics .menuPageScore {
+  margin-left: 0px;
+  margin-right: auto;
+  margin-bottom: 30px;
+}
+
+.menuPageStatistics .menuPageGazeRatio {
+  margin-top: 30px;
+  margin-left: 0px;
+  margin-right: auto;
+}
+
+.menuSummarySection .menuSummarySaleCount,
+.menuSummarySection .menuSummaryTime,
+.menuSummarySection .menuSummarySales,
+.menuPageStatistics .menuPageScore,
+/* .menuDetailPageStatistics .menuDetailPageVisitCount, */
+/* .menuDetailPageStatistics .menuDetailPageDwellTime, */
+/* .GtoFRatioSection .GtoFRatioValue, */
+.GtoFRatioSection .GtoFRatioPercent {
+  display: flex;
+  flex-direction: column;
+  width: 20vw;
+  padding: 15px;
+  gap: 4px;
+  flex: 1 0 0;
+  border-radius: 6px;
+  border: 1px solid #444444;
+}
+
+.GtoFRatioSection .GtoFRatioValue {
+  display: flex;
+  flex-direction: column;
+  width: 25vw;
+  padding: 20px;
+  gap: 4px;
+  flex: 1 0 0;
+  border-radius: 6px;
+  border: 1px solid #444444;
+}
+
+.GtoFRatioBodyWithNoValue {
+  display: flex;
+  flex-direction: column;
+  width: 50vw;
+  padding: 20px;
+  gap: 4px;
+  flex: 1 0 0;
+  border-radius: 6px;
+  border: 1px solid #444444;
+  background-color: #d2d2d2;
+}
+
+.menuPageStatistics .menuPageDwellTime,
+.menuPageStatistics .menuPageGazeRatio,
+.menuDetailPageStatistics .menuDetailPageDwellTime,
+.menuDetailPageStatistics .menuDetailOrderRatio {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: auto;
+  /* width: 50vw; */
+  padding: 15px;
+  gap: 4px;
+  flex: 1 0 0;
+  background-color: #f2f2f2;
+  border-radius: 6px;
+  border: none;
+  /* border: 1px solid #444444; */
+}
+
+.menuDetailPageStatistics .menuDetailPageDwellTime,
+.menuDetailPageStatistics .menuDetailOrderRatio {
+  width: 50vw;
+}
+
+.menuSummarySection p,
+.menuPageStatistics p,
+.menuDetailPageStatistics p,
+.GtoFRatioSection p {
+  color: #4d4d4d;
+  font-family: "Hahmlet-Regular";
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 24px;
+  white-space: nowrap;
+  background: none;
+}
+
+.menuSummarySection p,
+.menuPageStatistics p,
+.menuDetailPageStatistics p,
+.GtoFRatioPercent p {
+  margin-left: 0px;
+  margin-right: auto;
+}
+
+.GtoFRatioValue p {
+  margin: 0 auto;
+  white-space: wrap;
+}
+
+.GtoFRatioPieChart {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+  width: 15vw;
+  height: 10vw;
+}
+
+.GtoFRatioValue span {
+  color: #1e1e1e;
+  font-family: "Hahmlet-Medium";
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 36px;
+  white-space: nowrap;
+}
+
+.GtoFRatioPercent span {
+  color: #051c77;
+}
+
+.menuSummarySection span,
+.menuPageStatistics span,
+.menuDetailPageStatistics span {
+  color: #1e1e1e;
+}
+
+.menuSummarySection span,
+.menuPageStatistics span,
+.menuDetailPageStatistics span,
+.GtoFRatioPercent span {
+  margin-left: 0px;
+  margin-right: auto;
+  font-family: "Hahmlet-Medium";
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 36px;
+  white-space: nowrap;
+}
+
+.menuDetailPageGazeDesc p,
+.menuDetailPageStatisticsDesc p,
+.menuPageStatisticsDesc p,
+.menuSummarySectionDesc p,
+.GtoFRatioSectionDesc p {
+  display: flex;
+  justify-content: center;
+  width: 45vw;
+  text-align: center;
+  color: #4d4d4d;
+  font-family: "Hahmlet-Light";
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 30px;
+  background-color: #fff;
+}
+
+/* @media (max-width: 768px) {
+  .GtoFRatioPieChart {
+    margin-left: -15%;
+    margin-top: -35%;
+  }
+}
+
+@media (min-width: 769px) {
+  .GtoFRatioPieChart {
+    margin-left: 16%;
+    margin-top: -20%;
+  }
+} */
+
+.divForButton {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+}
+
+.goUpButton {
+  width: 40px;
+  height: 40px;
+  line-height: 1vw;
+  color: #3a3a3a;
+  text-align: center;
+  font-size: 20px;
+  padding: 10px;
+  border: 1px solid #3a3a3a;
+  border-radius: 100%;
+  background: none;
+}
+
+.menuDetailPageGazeBody {
+  display: flex;
+  /* margin: 0 auto; */
+  flex-flow: row nowrap;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  width: 30vw;
+  margin-top: 10px;
+}
+
+.menuDetailPageGazeBody img {
+  width: 20vw;
+  height: auto;
+  border: 1px solid #474747;
+}
+
+.detailDiv {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-left: 30px;
+  position: absolute;
+  /* top: 30px;
+  left: 30px; */
+  background: none;
+  padding: 10px;
+  z-index: 1;
+}
+
+.detailDiv p {
+  font-size: 20px;
+  font-weight: 700;
+  padding: 20px 0;
+  white-space: nowrap;
+  margin: 30px 0;
+  background: none;
+}
+
+.detailDiv p:nth-child(1) {
+  /* margin-top: 100px; */
+  margin-top: 250px;
+  margin-bottom: 2vw;
+}
+
+.detailDiv p:nth-child(2) {
+  margin-top: 3vw;
+  margin-bottom: 5vw;
+}
+
+.detailDiv p:nth-child(3) {
+  margin-top: 5vw;
+  margin-bottom: 3vw;
+}
+
+.detailDiv p:nth-child(4) {
+  /* margin-top: 20px; */
+  margin-bottom: 3vw;
+}
+
+.detailDiv p:nth-child(5) {
+  margin-bottom: 2vw;
+}

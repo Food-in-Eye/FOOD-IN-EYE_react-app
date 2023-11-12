@@ -1,4 +1,6 @@
 .body {
+  display: flex;
+  flex-direction: column;
   margin-top: 10%;
   margin-bottom: 10%;
 }
@@ -10,24 +12,28 @@
   background-color: #686868;
 }
 
-.body h3 {
+.body span {
   margin-left: 0;
-  max-width: 40%;
+  max-width: 35%;
   padding: 2%;
   border-radius: 0 20px 0 0;
-  background-color: #ff9345;
+  white-space: nowrap;
+  font-family: "Hahmlet-SemiBold";
+  font-size: 20px;
+  font-weight: 600;
+  /* background-color: #ff9345; */
 }
 
 .icons {
   box-sizing: border-box;
-  height: auto;
   display: flex;
   justify-content: center;
   align-items: center;
   flex-flow: row;
-  padding: 5%;
+  height: auto;
+  padding: 5% 2%;
+  border: 1px solid #d7d7d7;
   border-radius: 0 20px 20px 0;
-  box-shadow: 0 6px 5px #686868;
 }
 
 .icons div {
@@ -35,7 +41,16 @@
 }
 
 .icons button:hover {
-  border: 2px solid #337db1;
+  padding: 5px;
+  background-color: #e2e2e2;
+  /* border: 2px solid #337db1; */
+}
+
+.icons button {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .icons button,
@@ -45,11 +60,12 @@
 }
 
 .icons button p {
-  margin: 2% 0 10% 15%;
+  margin: 5% auto;
   white-space: nowrap;
+  font-family: "Hahmlet-Light";
 }
 
 .icons button img {
-  max-width: 45%;
+  max-width: 28%;
   height: auto;
 }

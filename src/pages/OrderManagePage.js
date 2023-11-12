@@ -25,21 +25,43 @@ function OrderManagePage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  const handlePageChange = (newPageNumber) => {
-    setCurrentPage(newPageNumber);
-  };
+  const getHistory = (sID, currentPage, startDate, endDate) => {
+    let query = `s_id=${sID}`;
 
-  const getHistory = (sID, batch) => {
-    getOrderHistory(`dates?s_id=${sID}&batch=${batch}`).then((res) => {
+    currentPage && (query += `&batch=${currentPage}`);
+    startDate && (query += `&start_date=${startDate}`);
+    endDate && (query += `&end_date=${endDate}`);
+
+    getOrderHistory(`dates?${query}`).then((res) => {
       setPageCount(res.data.max_batch);
-
       setOrderHistoryList(res.data.order_list);
     });
   };
 
+  const handleDateRange = async (e) => {
+    e.preventDefault();
+
+    setSelectedOrderIndex(null);
+    // setOrderHistory([]);
+    setCurrentPage();
+
+    const res = await getOrderHistory(
+      `dates?s_id=${sID}&batch=${currentPage}&start_date=${startDate}&end_date=${endDate}`
+    );
+    console.log("res", res);
+    setPageCount(res.data.max_batch);
+    // setCurrentPage(1);
+    setOrderHistoryList(res.data.order_list);
+  };
+
   useEffect(() => {
-    getHistory(sID, currentPage);
-  }, [currentPage]);
+    getHistory(sID, currentPage, startDate, endDate);
+  }, [currentPage, startDate, endDate]);
+
+  const handlePageChange = (newPageNumber) => {
+    setCurrentPage(newPageNumber);
+    getHistory(sID, newPageNumber, startDate, endDate);
+  };
 
   /**현재 페이지에 해당하는 주문 목록만 렌더링 */
   const renderOrderList = () => {
@@ -96,14 +118,32 @@ function OrderManagePage() {
   const fetchOrderDetails = async (date) => {
     const res = await getOrderHistory(`date?s_id=${sID}&date=${date}`);
     const orderDetails = res.data.order_list;
-    const orderData = orderDetails.map((data) => ({
-      orderTime: data.date.slice(11, 19),
-      // DELETE LATER: 이전 주문 중 f_name이 없는 data를 위한 f_id 남겨놓은 상태
-      orderMenus: `${
-        data.detail[0].f_name ? data.detail[0].f_name : data.detail[0].f_id
-      } ${data.detail[0].count}개`,
-      orderPrice: data.detail[0].price * data.detail[0].count,
-    }));
+
+    const orderData = [];
+
+    for (const data of orderDetails) {
+      let totalOrderMenus = "";
+      let totalOrderPrice = 0;
+
+      for (const detail of data.detail) {
+        const menuName = detail.f_name;
+        const menuCount = detail.count;
+        const menuPrice = detail.price * detail.count;
+
+        totalOrderMenus += `${menuName} ${menuCount}개, \n`;
+        totalOrderPrice += menuPrice;
+      }
+
+      if (totalOrderMenus.endsWith(", \n")) {
+        totalOrderMenus = totalOrderMenus.slice(0, -3);
+      }
+
+      orderData.push({
+        orderTime: data.date.slice(11, 19),
+        orderMenus: totalOrderMenus.slice(0, -2),
+        orderPrice: totalOrderPrice,
+      });
+    }
 
     return orderData;
   };
@@ -117,18 +157,6 @@ function OrderManagePage() {
 
     setRecentSortClicked(true);
     setLastSortClicked(false);
-  };
-
-  const handleDateRange = async (e) => {
-    e.preventDefault();
-
-    setSelectedOrderIndex(null);
-    setOrderHistory([]);
-
-    const res = await getOrderHistory(
-      `dates?s_id=${sID}&start_date=${startDate}&end_date=${endDate}`
-    );
-    setOrderHistoryList(res.data.order_list);
   };
 
   return (
@@ -161,9 +189,12 @@ function OrderManagePage() {
                   onChange={(e) => setEndDate(e.target.value)}
                 />
               </label>
-              <button type="submit" className={Order.submitCheckedDate}>
-                조회
-              </button>
+              {/* <button
+              onClick={handleDateRange}
+              className={Order.submitCheckedDate}
+            >
+              조회
+            </button> */}
             </div>
           </form>
         </div>

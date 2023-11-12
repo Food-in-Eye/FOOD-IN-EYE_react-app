@@ -3,7 +3,7 @@ import Button from "../css/Button.module.css";
 import { getStore, postLogin } from "../components/API.module";
 import { handleError } from "../components/JWT.module";
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { startTokenRefresh } from "../components/TokenRefreshService";
 import { useAuth } from "../components/AuthContext";
 
@@ -25,9 +25,16 @@ function LoginPage() {
 
   const [showIdErrorMsg, setShowIdErrorMsg] = useState(false);
   const [showPasswdErrorMsg, setShowPasswdErrorMsg] = useState(false);
+  const [showLoginSuccess, setShowLoginSuccess] = useState(false);
+  const [borderStyle, setBorderStyle] = useState("");
+
+  const [idInput, setIdInput] = useState("");
+  const [passwordInput, setPasswdInput] = useState("");
+  const [isButtonClicked, setIsButtonClicked] = useState(false);
 
   const onLogin = async (e) => {
     e.preventDefault();
+
     const newId = document.querySelector("#id").value;
     const newPasswd = document.querySelector("#password").value;
 
@@ -35,10 +42,13 @@ function LoginPage() {
     formData.append("username", newId);
     formData.append("password", newPasswd);
 
+    setIsButtonClicked(true);
+
     try {
       const request = await postLogin(`/seller/login`, formData);
 
       if (request.status === 200) {
+        setShowLoginSuccess(true);
         const tokenCreationTime = new Date(request.headers.date).getTime();
 
         localStorage.setItem("u_id", request.data.u_id);
@@ -49,13 +59,8 @@ function LoginPage() {
 
         startTokenRefresh();
         login();
-
-        if (request.data.s_id) {
-          getStoreNum(localStorage.getItem("s_id"));
-          navigate("/main");
-        } else {
-          navigate("/store-setting");
-        }
+      } else {
+        setShowLoginSuccess(false);
       }
     } catch (error) {
       if (error.response.status === 400) {
@@ -66,9 +71,16 @@ function LoginPage() {
         }
       } else if (error.response.status === 401) {
         console.log(error.response.data.detail);
+
+        setIdInput("");
+        setPasswdInput("");
+        setBorderStyle("");
       } else {
         handleError(error);
       }
+
+      setBorderStyle("2px solid #B9062F");
+      setIsButtonClicked(false);
     }
   };
 
@@ -76,6 +88,32 @@ function LoginPage() {
     const res = await getStore(s_id);
     localStorage.setItem("storeNum", res.data.num);
   };
+
+  const handleIdChange = (e) => {
+    setIdInput(e.target.value);
+    setShowIdErrorMsg(false);
+    setBorderStyle("");
+  };
+
+  const handlePasswdChange = (e) => {
+    setPasswdInput(e.target.value);
+    setShowIdErrorMsg(false);
+    setShowPasswdErrorMsg(false);
+    setBorderStyle("");
+    // isButtonClicked && setIsButtonClicked(false);
+  };
+
+  useEffect(() => {
+    if (showLoginSuccess) {
+      setBorderStyle("2px solid #52BF8B");
+      if (localStorage.getItem("s_id")) {
+        getStoreNum(localStorage.getItem("s_id"));
+        navigate("/main");
+      } else {
+        navigate("/store-setting");
+      }
+    }
+  }, [showLoginSuccess]);
 
   return (
     <div className={Login.container}>
@@ -127,7 +165,9 @@ function LoginPage() {
           alt="update"
           style={{ top: "67%", left: "15%" }}
         />
+        {/* <img src={foodineye} alt="logo" style={{ top: "20%", left: "50%" }} /> */}
       </section>
+
       <section className={Login.LoginForm}>
         <h2>Login</h2>
         <form>
@@ -140,7 +180,22 @@ function LoginPage() {
                   type="text"
                   name="id"
                   placeholder="아이디"
-                  onChange={() => setShowIdErrorMsg(false)}
+                  value={idInput}
+                  onChange={handleIdChange}
+                  // className={
+                  //   isButtonClicked
+                  //     ? showLoginSuccess
+                  //       ? Login.loginSuccess
+                  //       : Login.loginFail
+                  //     : ""
+                  // }
+                  style={{
+                    border: borderStyle,
+                    // isButtonClicked &&
+                    // (showLoginSuccess
+                    //   ? "2px solid #52BF8B"
+                    //   : "2px solid #B9062F"),
+                  }}
                 />
               </label>
             </section>
@@ -155,9 +210,21 @@ function LoginPage() {
                   type="password"
                   name="password"
                   placeholder="비밀번호"
-                  onChange={() => {
-                    setShowPasswdErrorMsg(false);
-                    setShowIdErrorMsg(false);
+                  value={passwordInput}
+                  onChange={handlePasswdChange}
+                  // className={
+                  //   isButtonClicked
+                  //     ? showLoginSuccess
+                  //       ? Login.loginSuccess
+                  //       : Login.loginFail
+                  //     : ""
+                  // }
+                  style={{
+                    border: borderStyle,
+                    // isButtonClicked &&
+                    // (showLoginSuccess
+                    //   ? "2px solid #52BF8B"
+                    //   : "2px solid #B9062F"),
                   }}
                 />
               </label>
